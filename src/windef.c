@@ -52,5 +52,5 @@ struct paintstruct
 #define SRCCOPY 0xcc0020
 #define INFINITE 0xffffffff
 #define NULL ((void *)0)
-#define LOWORD(x) ((x)&0xffff)
-#define HIWORD(x) ((x)>>16&0xffff)
+#define LOWORD(x) ((short)((x)&0xffff))
+#define HIWORD(x) ((short)((x)>>16&0xffff))

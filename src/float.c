@@ -1,19 +1,23 @@
 #define _ERROR 0.00000000000001
-float sqrt(float a)
+double sqrt(double a)
 {
-	float ret,b;
+	double ret,b;
+	if(a<_ERROR)
+	{
+		return 0.0;
+	}
 	ret=1.0;
 	do
 	{
 		b=ret;
 		ret=b*0.5+a/(2.0*b);
 	}
-	while(b/ret>1.0+_ERROR||b/ret<1.0-_ERROR||b-ret<-_ERROR||b-ret>_ERROR);
+	while((b/ret>1.0+_ERROR||b/ret<1.0-_ERROR)&&(b-ret<-_ERROR||b-ret>_ERROR));
 	return ret;
 }
-float _sin(float a)
+double _sin(double a)
 {
-	float n,ret,n1,b;
+	double n,ret,n1,b;
 	ret=0.0;
 	n=1.0;
 	n1=-3.0;
@@ -28,7 +32,7 @@ float _sin(float a)
 	}
 	return ret;
 }
-float cos(float a)
+double cos(double a)
 {
 	if(a<1.0&&a>-1.0)
 	{
@@ -39,7 +43,7 @@ float cos(float a)
 	a=2.0*a*a-1.0;
 	return a;
 }
-float sin(float a)
+double sin(double a)
 {
 	if(a<1.0&&a>-1.0)
 	{

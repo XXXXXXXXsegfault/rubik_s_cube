@@ -1,6 +1,6 @@
 unsigned char colors[54];
 int rotating;
-float rotate_angle;
+double rotate_angle;
 unsigned long rotate_time;
 void cube_init(void)
 {
@@ -11,34 +11,34 @@ void cube_init(void)
 	memset(colors+36,5,9);
 	memset(colors+45,6,9);
 }
-void rotate_x(float sin_a,float cos_a,struct vector *v)
+void rotate_x(double sin_a,double cos_a,struct vector *v)
 {
-	float x,y;
+	double x,y;
 	x=v->y*cos_a+v->z*sin_a;
 	y=-v->y*sin_a+v->z*cos_a;
 	v->y=x;
 	v->z=y;
 }
-void rotate_y(float sin_a,float cos_a,struct vector *v)
+void rotate_y(double sin_a,double cos_a,struct vector *v)
 {
-	float x,y;
+	double x,y;
 	x=v->z*cos_a+v->x*sin_a;
 	y=-v->z*sin_a+v->x*cos_a;
 	v->z=x;
 	v->x=y;
 }
-void rotate_z(float sin_a,float cos_a,struct vector *v)
+void rotate_z(double sin_a,double cos_a,struct vector *v)
 {
-	float x,y;
+	double x,y;
 	x=v->x*cos_a+v->y*sin_a;
 	y=-v->x*sin_a+v->y*cos_a;
 	v->x=x;
 	v->y=y;
 }
-void axis_rotate(struct vector *vx,struct vector *vy,float angle)
+void axis_rotate(struct vector *vx,struct vector *vy,double angle)
 {
 	struct vector x,y,t[2];
-	float s,c;
+	double s,c;
 	x.x=vx->x;
 	x.y=vx->y;
 	x.z=vx->z;
@@ -195,15 +195,15 @@ void cube_index(int i,int x,int *ix,int *iy)
 
 void cube_rotate(int x,int y)
 {
-	float l,s,c,l1;
+	double l,s,c,l1;
 	if(x==0&&y==0)
 	{
 		return;
 	}
 	mutex_lock(&lock);
-	l=sqrt((float)(x*x+y*y));
-	s=(float)x/l;
-	c=(float)-y/l;
+	l=sqrt((double)(x*x+y*y));
+	s=(double)x/l;
+	c=(double)-y/l;
 	rotate_x(-c,s,&X);
 	rotate_x(-c,s,&Y);
 	rotate_x(-c,s,&Z);
@@ -218,12 +218,12 @@ void cube_rotate(int x,int y)
 
 	mutex_unlock(&lock);
 }
-void p_square(int side,float x,float y,float z,float len,float r,float g,float b,int rotate)
+void p_square(int side,double x,double y,double z,double len,double r,double g,double b,int rotate)
 {
 	struct vector vx,vy,vz,vnx,vny,va;
 	struct vector P1,P2,P3,P4;
 	struct vector x1,y1,z1;
-	float angle;
+	double angle;
 	unsigned int color;
 	x1.x=X.x;
 	x1.y=X.y;
@@ -334,7 +334,7 @@ void p_cube(void)
 {
 	int i,x,j;
 	int ix,iy;
-	float r,g,b;
+	double r,g,b;
 	struct vector vx,vy,vz;
 	r3d_zbuf_clean(&camera);
 	i=1;
@@ -381,8 +381,8 @@ void p_cube(void)
 				g=0.4;
 				b=0.0;
 			}
-			p_square(i,(float)ix,(float)iy,1.52,0.8,r,g,b,needs_rotate(i,x));
-			p_square(i,(float)ix,(float)iy,1.5,1.0,0.5,0.5,0.5,needs_rotate(i,x));
+			p_square(i,(double)ix,(double)iy,1.52,0.8,r,g,b,needs_rotate(i,x));
+			p_square(i,(double)ix,(double)iy,1.5,1.0,0.5,0.5,0.5,needs_rotate(i,x));
 			++j;
 			++x;
 		}
@@ -398,7 +398,7 @@ void p_cube(void)
 int check_if_clicked(struct vector *vx,struct vector *vy,struct vector *vz,struct vector *vc)
 {
 	struct vector va,vc1;
-	float transform_matrix[12];
+	double transform_matrix[12];
 	vector_sub(vz,&camera.pos,&va);
 	if(vector_iprod(vc,vz)>0)
 	{
@@ -615,8 +615,8 @@ void click_cube(int x,int y,int rclick)
 		mutex_unlock(&lock);
 		return;
 	}
-	vector_mul(&camera.dirx,(float)x,&vx);
-	vector_mul(&camera.diry,-(float)y,&vy);
+	vector_mul(&camera.dirx,(double)x,&vx);
+	vector_mul(&camera.diry,-(double)y,&vy);
 	vector_add(&camera.dirz,&vx,&vc);
 	vector_add(&vc,&vy,&vc);
 	side=clicked_side(&vc);

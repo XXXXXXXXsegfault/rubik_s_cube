@@ -11,7 +11,7 @@
 void *lock;
 int paint;
 unsigned int pbuf[WINW*WINH];
-float zbuf[WINW*WINH];
+double zbuf[WINW*WINH];
 struct r3d_camera camera;
 struct vector X,Y,Z;
 struct wndclassex wc;
@@ -28,7 +28,7 @@ void paint_all(void)
 		t1=t-rotate_time;
 		if(rotate_angle<0.0)
 		{
-			rotate_angle+=PI*(float)t1/500.0;
+			rotate_angle+=PI*(double)t1/500.0;
 			if(rotate_angle>0.0)
 			{
 				rotating=0;
@@ -36,7 +36,7 @@ void paint_all(void)
 		}
 		else
 		{
-			rotate_angle-=PI*(float)t1/500.0;
+			rotate_angle-=PI*(double)t1/500.0;
 			if(rotate_angle<0.0)
 			{
 				rotating=0;
@@ -89,11 +89,11 @@ asm "add $32,%rsp"
 asm "ret"
 int WndProc(void *hwnd,unsigned int Message,unsigned int wParam,unsigned int lParam)
 {
-	static short left_click_valid,right_click_valid;
-	static short left_click_x,left_click_y;
-	static short right_click_x,right_click_y;
+	static int left_click_valid,right_click_valid;
+	static int left_click_x,left_click_y;
+	static int right_click_x,right_click_y;
 	static int left_total,right_total;
-	short x,y,ax,ay;
+	int x,y,ax,ay;
 	if(Message==WM_DESTROY)
 	{
 		exit(0);

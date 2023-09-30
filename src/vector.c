@@ -1,9 +1,9 @@
 #include "float.c"
 struct vector
 {
-	float x;
-	float y;
-	float z;
+	double x;
+	double y;
+	double z;
 };
 void __vector_add(struct vector *a,struct vector *b,struct vector *c);
 asm "@__vector_add"
@@ -41,14 +41,14 @@ struct vector *vector_sub(struct vector *a,struct vector *b,struct vector *c)
 	__vector_sub(a,b,c);
 	return c;
 }
-struct vector *vector_mul(struct vector *a,float b,struct vector *c)
+struct vector *vector_mul(struct vector *a,double b,struct vector *c)
 {
 	c->x=a->x*b;
 	c->y=a->y*b;
 	c->z=a->z*b;
 	return c;
 }
-float vector_iprod(struct vector *a,struct vector *b)
+double vector_iprod(struct vector *a,struct vector *b)
 {
 	return a->x*b->x+a->y*b->y+a->z*b->z;
 }
@@ -63,20 +63,20 @@ struct vector *vector_cprod(struct vector *a,struct vector *b,struct vector *c)
 	c->z=d.z;
 	return c;
 }
-float vector_len(struct vector *a)
+double vector_len(struct vector *a)
 {
 	return sqrt(a->x*a->x+a->y*a->y+a->z*a->z);
 }
-struct vector *vinit(struct vector *v,float x,float y,float z)
+struct vector *vinit(struct vector *v,double x,double y,double z)
 {
 	v->x=x;
 	v->y=y;
 	v->z=z;
 	return v;
 }
-float __solve3(float a1,float a2,float a3,float a4,float a5,float a6,float a7,float a8,float a9,float a10,float a11,float a12)
+double __solve3(double a1,double a2,double a3,double a4,double a5,double a6,double a7,double a8,double a9,double a10,double a11,double a12)
 {
-	float c;
+	double c;
 	c=a1*a6*a11+a2*a7*a9+a3*a5*a10-a3*a6*a9-a2*a5*a11-a1*a7*a10;
 	if(c<0.0000000001&&c>-0.0000000001)
 	{
@@ -84,7 +84,7 @@ float __solve3(float a1,float a2,float a3,float a4,float a5,float a6,float a7,fl
 	}
 	return (a2*a7*a12+a3*a8*a10+a4*a6*a11-a4*a7*a10-a2*a8*a11-a3*a6*a12)/c;
 }
-void calculate_transform_matrix(struct vector *o,struct vector *x,struct vector *y,struct vector *z,float *transform_matrix)
+void calculate_transform_matrix(struct vector *o,struct vector *x,struct vector *y,struct vector *z,double *transform_matrix)
 {
 	transform_matrix[0]=__solve3(
 x->x,y->x,z->x,1.0,
@@ -135,7 +135,7 @@ z->x,y->x,x->x,-o->x,
 z->y,y->y,x->y,-o->y,
 z->z,y->z,x->z,-o->z);
 }
-struct vector *coord_transform(float *matrix,struct vector *pin,struct vector *pout)
+struct vector *coord_transform(double *matrix,struct vector *pin,struct vector *pout)
 {
 	struct vector p;
 	p.x=pin->x*matrix[0]+pin->y*matrix[1]+pin->z*matrix[2]+matrix[3];
@@ -146,7 +146,7 @@ struct vector *coord_transform(float *matrix,struct vector *pin,struct vector *p
 	pout->z=p.z;
 	return pout;
 }
-void vector_intersection(struct vector *lp,struct vector *ld,struct vector *pp,struct vector *pd1,struct vector *pd2,float *l,float *p1,float *p2)
+void vector_intersection(struct vector *lp,struct vector *ld,struct vector *pp,struct vector *pd1,struct vector *pd2,double *l,double *p1,double *p2)
 {
 	*l=__solve3(
 -ld->x,pd1->x,pd2->x,lp->x-pp->x,

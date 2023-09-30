@@ -4,7 +4,7 @@
 struct r3d_camera
 {
 	unsigned int *fb;
-	float *zbuf;
+	double *zbuf;
 	int fbw;
 	int fbh;
 	int center_x;
@@ -13,12 +13,12 @@ struct r3d_camera
 	struct vector dirz;
 	struct vector dirx;
 	struct vector diry;
-	float transform[12];
+	double transform[12];
 };
 void r3d_camera_init(struct r3d_camera *camera)
 {
 	struct vector *vz,*vx,*vy;
-	float vz_len;
+	double vz_len;
 	vz=&camera->dirz;
 	vx=&camera->dirx;
 	vy=&camera->diry;
@@ -29,10 +29,10 @@ void r3d_camera_init(struct r3d_camera *camera)
 }
 void r3d_zbuf_clean(struct r3d_camera *camera)
 {
-	memset(camera->zbuf,0x0,sizeof(float)*camera->fbw*camera->fbh);
+	memset(camera->zbuf,0x0,sizeof(double)*camera->fbw*camera->fbh);
 }
 #define IS_ZERO(a) ((a)<0.0000001&&(a)>-0.0000001)
-void _r3d_render_line(float *zbuf,unsigned int *pbuf,unsigned int color,float cx,float a,float c,int len)
+void _r3d_render_line(double *zbuf,unsigned int *pbuf,unsigned int color,double cx,double a,double c,int len)
 {
 	while(len>0)
 	{
@@ -47,7 +47,7 @@ void _r3d_render_line(float *zbuf,unsigned int *pbuf,unsigned int color,float cx
 		--len;
 	}
 }
-void r3d_render_line(float *zbuf,unsigned int *pbuf,unsigned int color,float cx,float a,float c,int len)
+void r3d_render_line(double *zbuf,unsigned int *pbuf,unsigned int color,double cx,double a,double c,int len)
 {
 	c=1.0/c;
 	a*=c;
@@ -55,10 +55,10 @@ void r3d_render_line(float *zbuf,unsigned int *pbuf,unsigned int color,float cx,
 	_r3d_render_line(zbuf,pbuf,color,cx,a,c,len);
 }
 
-void _p_triangle(int n,int n1,struct r3d_camera *camera,struct vector *P1,struct vector *P2,struct vector *P3,unsigned int color,float a,float b,float c)
+void _p_triangle(int n,int n1,struct r3d_camera *camera,struct vector *P1,struct vector *P2,struct vector *P3,unsigned int color,double a,double b,double c)
 {
 	int x,y,x4,x5,t,i,j;
-	float z,z1,cx,cy,*zbuf;
+	double z,z1,cx,cy,*zbuf;
 	unsigned int *fb;
 	int x1,y1,x2,y2,x3,y3;
 	int Y1,Y2;
@@ -105,7 +105,7 @@ void _p_triangle(int n,int n1,struct r3d_camera *camera,struct vector *P1,struct
 		y=Y1;
 	}
 	i=y*camera->fbw;
-	cy=1.0-b*(float)(camera->center_y-y);
+	cy=1.0-b*(double)(camera->center_y-y);
 	while(y<y2&&y<Y2)
 	{
 		x4=x1+(y-y1)*(x2-x1)/(y2-y1);
@@ -125,7 +125,7 @@ void _p_triangle(int n,int n1,struct r3d_camera *camera,struct vector *P1,struct
 			x5=camera->fbw;
 		}
 		x=x4;
-		cx=cy-a*(float)(x-camera->center_x);
+		cx=cy-a*(double)(x-camera->center_x);
 		r3d_render_line(zbuf+i+x,fb+i+x,color,cx,-a,c,x5-x4);
 		i+=camera->fbw;
 		cy+=b;
@@ -150,7 +150,7 @@ void _p_triangle(int n,int n1,struct r3d_camera *camera,struct vector *P1,struct
 			x5=camera->fbw;
 		}
 		x=x4;
-		cx=cy-a*(float)(x-camera->center_x);
+		cx=cy-a*(double)(x-camera->center_x);
 		r3d_render_line(zbuf+i+x,fb+i+x,color,cx,-a,c,x5-x4);
 		i+=camera->fbw;
 		cy+=b;
@@ -160,7 +160,7 @@ void _p_triangle(int n,int n1,struct r3d_camera *camera,struct vector *P1,struct
 void __p_intersection(struct vector *P1,struct vector *P2,struct vector *result)
 {
 	struct vector v;
-	float n;
+	double n;
 	vector_sub(P1,P2,&v);
 	if(IS_ZERO(v.z))
 	{
@@ -176,7 +176,7 @@ void __p_intersection(struct vector *P1,struct vector *P2,struct vector *result)
 void r3d_paint_triangle2(int n,int n1,struct r3d_camera *camera,struct vector *p1,struct vector *p2,struct vector *p3,unsigned int color)
 {
 	struct vector P1,P2,P3,P4,P5;
-	float a,b,c;
+	double a,b,c;
 	int X1,X2,X3,Y1,Y2,Y3,Y4,Y5;
 	coord_transform(camera->transform,p1,&P1);
 	coord_transform(camera->transform,p2,&P2);
