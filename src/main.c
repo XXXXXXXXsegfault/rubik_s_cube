@@ -87,7 +87,7 @@ asm "push %rcx"
 asm "call @WndProc"
 asm "add $32,%rsp"
 asm "ret"
-int WndProc(void *hwnd,unsigned int Message,unsigned int wParam,unsigned int lParam)
+int WndProc(void *hwnd,unsigned int Message,unsigned long wParam,unsigned long lParam)
 {
 	static int left_click_valid,right_click_valid;
 	static int left_click_x,left_click_y;
