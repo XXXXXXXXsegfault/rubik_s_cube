@@ -1,83 +1,28 @@
 #include "windows.c"
 #include "windef.c"
 #include "mem.c"
-#include "lock.c"
+#include "vector.c"
 #include "3drenderer.c"
 #define WINW 400
 #define WINH 400
 #define CX 200
 #define CY 200
 #define PI 3.141592653589793
-void *lock;
-int paint;
 unsigned int pbuf[WINW*WINH];
 double zbuf[WINW*WINH];
 struct r3d_camera camera;
 struct vector X,Y,Z;
 struct wndclassex wc;
-void *dc,*memdc;
-void *bitmap;
 #include "cube.c"
 void paint_all(void)
 {
-	long t,t1;
 	p_cube();
-	if(rotating)
-	{
-		t=clock();
-		t1=t-rotate_time;
-		if(rotate_angle<0.0)
-		{
-			rotate_angle+=PI*(double)t1/500.0;
-			if(rotate_angle>0.0)
-			{
-				rotating=0;
-			}
-		}
-		else
-		{
-			rotate_angle-=PI*(double)t1/500.0;
-			if(rotate_angle<0.0)
-			{
-				rotating=0;
-			}
-		}
-		rotate_time=t;
-		paint=1;
-	}
 }
 void clear(void)
 {
 	memset(pbuf,0,sizeof(pbuf));
 }
-void display(void *dc)
-{
-	SetBitmapBits(bitmap,sizeof(pbuf),pbuf);
-	BitBlt(dc,0,0,WINW,WINH,memdc,0,0,SRCCOPY);
-}
 
-int _T_paint(void *param); // NOTE: SCC uses a different calling convention
-asm "@_T_paint"
-asm "push %rcx"
-asm "call @T_paint"
-asm "add $8,%rsp"
-asm "ret"
-int T_paint(void *param)
-{
-	while(1)
-	{
-		if(paint)
-		{
-			paint=0;
-			mutex_lock(&lock);
-			clear();
-			paint_all();
-			display(dc);
-			mutex_unlock(&lock);
-		}
-		Sleep(5);
-	}
-}
 int _WndProc(void *hwnd,unsigned int Message,unsigned int wParam,unsigned int lParam); // NOTE: SCC uses a different calling convention
 asm "@_WndProc"
 asm "push %r9"
@@ -101,13 +46,18 @@ int WndProc(void *hwnd,unsigned int Message,unsigned long wParam,unsigned long l
 	else if(Message==WM_PAINT)
 	{
 		struct paintstruct ps;
-		mutex_lock(&lock);
-		BeginPaint(hwnd,&ps);
+		void *dc,*memdc,*bmp;
+		dc=BeginPaint(hwnd,&ps);
 		clear();
 		paint_all();
-		display(ps.hdc);
+		memdc=CreateCompatibleDC(dc);
+		bmp=CreateCompatibleBitmap(dc,WINW,WINH);
+		SelectObject(memdc,bmp);
+		SetBitmapBits(bmp,sizeof(pbuf),pbuf);
+		BitBlt(dc,0,0,WINW,WINH,memdc,0,0,SRCCOPY);
+		DeleteObject(bmp);
+		DeleteDC(memdc);
 		EndPaint(hwnd,&ps);
-		mutex_unlock(&lock);
 	}
 	else if(Message==WM_LBUTTONDOWN)
 	{
@@ -130,6 +80,7 @@ int WndProc(void *hwnd,unsigned int Message,unsigned long wParam,unsigned long l
 			x=LOWORD(lParam);
 			y=HIWORD(lParam);
 			click_cube(x-CX,y-CY,0);
+			InvalidateRect(hwnd,NULL,0);
 		}
 		left_click_valid=0;
 	}
@@ -140,6 +91,7 @@ int WndProc(void *hwnd,unsigned int Message,unsigned long wParam,unsigned long l
 			x=LOWORD(lParam);
 			y=HIWORD(lParam);
 			click_cube(x-CX,y-CY,1);
+			InvalidateRect(hwnd,NULL,0);
 		}
 		right_click_valid=0;
 	}
@@ -161,10 +113,10 @@ int WndProc(void *hwnd,unsigned int Message,unsigned long wParam,unsigned long l
 				ay=-ay;
 			}
 			cube_rotate(x-left_click_x,y-left_click_y);
+			InvalidateRect(hwnd,NULL,0);
 			left_total+=ax+ay;
 			left_click_x=x;
 			left_click_y=y;
-			paint=1;
 		}
 		if(wParam&2&&right_click_valid)
 		{
@@ -191,12 +143,40 @@ int WndProc(void *hwnd,unsigned int Message,unsigned long wParam,unsigned long l
 			right_click_valid=0;
 		}
 	}
+	else if(Message==WM_TIMER)
+	{
+		long t,t1;
+		if(rotating)
+		{
+			t=clock();
+			t1=t-rotate_time;
+			if(rotate_angle<0.0)
+			{
+				rotate_angle+=PI*(double)t1/500.0;
+				if(rotate_angle>0.0)
+				{
+					rotating=0;
+				}
+			}
+			else
+			{
+				rotate_angle-=PI*(double)t1/500.0;
+				if(rotate_angle<0.0)
+				{
+					rotating=0;
+				}
+			}
+			rotate_time=t;
+			InvalidateRect(hwnd,NULL,0);
+		}
+	}
 	return DefWindowProcA(hwnd,Message,wParam,lParam);
 }
 int main(int argc,char **argv,void *hInstance)
 {
 	void *hwnd;
 	struct msg msg;
+	SetProcessDPIAware();
 	vinit(&camera.pos,-20.0,0.0,0.0);
 	vinit(&camera.dirz,5.0,0.0,0.0);
 	vinit(&camera.dirx,0.0,-0.004,0.0);
@@ -224,20 +204,13 @@ int main(int argc,char **argv,void *hInstance)
 		MessageBoxA(NULL,"Cannot register window class","Error",0);
 		return 0;
 	}
-	hwnd=CreateWindowExA(WS_EX_WINDOWEDGE,"rubik_s_cube","Rubik\'s Cube",WS_VISIBLE|WS_SYSMENU|WS_CAPTION,0,0,WINW+6,WINH+29,NULL,NULL,hInstance,NULL);
+	hwnd=CreateWindowExA(WS_EX_WINDOWEDGE,"rubik_s_cube","Rubik\'s Cube",WS_VISIBLE|WS_SYSMENU|WS_CAPTION,0,0,WINW+6,WINH+35,NULL,NULL,hInstance,NULL);
 	if(hwnd==NULL)
 	{
 		MessageBoxA(NULL,"Cannot create window","Error",0);
 		return 0;
 	}
-	dc=GetDC(hwnd);
-	memdc=CreateCompatibleDC(dc);
-	bitmap=CreateCompatibleBitmap(dc,WINW,WINH);
-	SelectObject(memdc,bitmap);
-	
-	lock=CreateMutexA(NULL,0,NULL);
-	CreateThread(NULL,0,_T_paint,NULL,0,NULL);
-	paint=1;
+	SetTimer(hwnd,0,12,NULL);
 	while(GetMessageA(&msg,NULL,0,0)>0)
 	{
 		TranslateMessage(&msg);

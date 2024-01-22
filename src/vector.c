@@ -1,4 +1,3 @@
-#include "float.c"
 struct vector
 {
 	double x;

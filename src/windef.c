@@ -49,6 +49,7 @@ struct paintstruct
 #define WM_RBUTTONUP 517
 #define WM_MOUSEMOVE 512
 #define WM_ACTIVATE 6
+#define WM_TIMER 275
 #define SRCCOPY 0xcc0020
 #define INFINITE 0xffffffff
 #define NULL ((void *)0)

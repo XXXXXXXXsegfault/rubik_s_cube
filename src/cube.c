@@ -200,7 +200,6 @@ void cube_rotate(int x,int y)
 	{
 		return;
 	}
-	mutex_lock(&lock);
 	l=sqrt((double)(x*x+y*y));
 	s=(double)x/l;
 	c=(double)-y/l;
@@ -215,8 +214,6 @@ void cube_rotate(int x,int y)
 	rotate_x(c,s,&X);
 	rotate_x(c,s,&Y);
 	rotate_x(c,s,&Z);
-
-	mutex_unlock(&lock);
 }
 void p_square(int side,double x,double y,double z,double len,double r,double g,double b,int rotate)
 {
@@ -609,10 +606,8 @@ void click_cube(int x,int y,int rclick)
 {
 	struct vector vx,vy,vc;
 	int side;
-	mutex_lock(&lock);
 	if(rotating)
 	{
-		mutex_unlock(&lock);
 		return;
 	}
 	vector_mul(&camera.dirx,(double)x,&vx);
@@ -622,7 +617,6 @@ void click_cube(int x,int y,int rclick)
 	side=clicked_side(&vc);
 	if(side==0)
 	{
-		mutex_unlock(&lock);
 		return;
 	}
 	side_rotate(side,rclick);
@@ -636,6 +630,4 @@ void click_cube(int x,int y,int rclick)
 	}
 	rotating=side;
 	rotate_time=clock();
-	paint=1;
-	mutex_unlock(&lock);
 }
